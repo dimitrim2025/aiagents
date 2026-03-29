@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import io
+import json
 import os
 import sys
 from datetime import datetime
@@ -14,6 +15,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parent.parent / "src"))
 
 from calendar_tz import TravelCalendarEntry, ICSWriter
 from flights_data import FLIGHTS
+from airports_data import AIRPORTS, search_airports
 
 app = Flask(__name__, template_folder="templates", static_folder="static")
 
@@ -82,6 +84,18 @@ def preview_ics(flight_id: str):
         abort(404)
     ics_content = _build_ics(flight)
     return ics_content, 200, {"Content-Type": "text/plain; charset=utf-8"}
+
+
+@app.route("/airports")
+def airports_page():
+    airport_count = len(AIRPORTS)
+    terminal_count = sum(len(a["terminals"]) for a in AIRPORTS)
+    return render_template(
+        "airports.html",
+        airports_json=json.dumps(AIRPORTS),
+        airport_count=airport_count,
+        terminal_count=terminal_count,
+    )
 
 
 if __name__ == "__main__":
