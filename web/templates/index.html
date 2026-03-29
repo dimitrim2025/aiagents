@@ -1,0 +1,427 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>TravelCal — Flight Dashboard</title>
+  <style>
+    :root {
+      --bg: #0f1117;
+      --surface: #1a1d27;
+      --surface-hover: #222632;
+      --border: #2a2e3b;
+      --text: #e4e6ed;
+      --text-muted: #8b8fa3;
+      --accent: #6c63ff;
+      --accent-hover: #5a52e0;
+      --green: #34d399;
+      --orange: #fb923c;
+      --blue: #60a5fa;
+      --red: #f87171;
+      --radius: 12px;
+    }
+
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      line-height: 1.6;
+      min-height: 100vh;
+    }
+
+    .container {
+      max-width: 1100px;
+      margin: 0 auto;
+      padding: 2rem 1.5rem;
+    }
+
+    header {
+      text-align: center;
+      margin-bottom: 3rem;
+    }
+
+    header h1 {
+      font-size: 2.2rem;
+      font-weight: 700;
+      letter-spacing: -0.03em;
+      margin-bottom: 0.4rem;
+    }
+
+    header h1 span {
+      color: var(--accent);
+    }
+
+    header p {
+      color: var(--text-muted);
+      font-size: 1rem;
+    }
+
+    .route-group {
+      margin-bottom: 2.5rem;
+    }
+
+    .route-group h2 {
+      font-size: 1.1rem;
+      font-weight: 600;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      margin-bottom: 1rem;
+      padding-bottom: 0.5rem;
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    .route-badge {
+      display: inline-block;
+      font-size: 0.7rem;
+      background: var(--accent);
+      color: #fff;
+      padding: 2px 8px;
+      border-radius: 999px;
+      font-weight: 600;
+      letter-spacing: 0;
+      text-transform: none;
+    }
+
+    .flights-grid {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 1rem;
+    }
+
+    .flight-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 1.4rem 1.6rem;
+      transition: background 0.15s, border-color 0.15s;
+    }
+
+    .flight-card:hover {
+      background: var(--surface-hover);
+      border-color: var(--accent);
+    }
+
+    .card-top {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      margin-bottom: 1rem;
+    }
+
+    .airline-info {
+      display: flex;
+      flex-direction: column;
+    }
+
+    .airline-name {
+      font-size: 0.82rem;
+      color: var(--text-muted);
+      font-weight: 500;
+    }
+
+    .flight-num {
+      font-size: 1.4rem;
+      font-weight: 700;
+      letter-spacing: -0.02em;
+    }
+
+    .aircraft-tag {
+      font-size: 0.75rem;
+      color: var(--text-muted);
+      background: rgba(108, 99, 255, 0.1);
+      padding: 3px 10px;
+      border-radius: 999px;
+      white-space: nowrap;
+      align-self: flex-start;
+      margin-top: 4px;
+    }
+
+    .route-visual {
+      display: flex;
+      align-items: center;
+      gap: 0;
+      margin-bottom: 1rem;
+    }
+
+    .city-block {
+      flex: 1;
+    }
+
+    .city-block.arrival {
+      text-align: right;
+    }
+
+    .airport-code {
+      font-size: 1.5rem;
+      font-weight: 800;
+      letter-spacing: 0.04em;
+    }
+
+    .city-name {
+      font-size: 0.82rem;
+      color: var(--text-muted);
+    }
+
+    .route-line {
+      flex: 1.5;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      position: relative;
+      padding: 0 0.5rem;
+    }
+
+    .route-line::before {
+      content: '';
+      position: absolute;
+      top: 50%;
+      left: 10%;
+      right: 10%;
+      height: 2px;
+      background: linear-gradient(90deg, var(--accent), var(--green));
+      transform: translateY(-50%);
+    }
+
+    .route-line .duration-pill {
+      position: relative;
+      z-index: 1;
+      background: var(--bg);
+      color: var(--text-muted);
+      font-size: 0.75rem;
+      font-weight: 600;
+      padding: 3px 12px;
+      border-radius: 999px;
+      border: 1px solid var(--border);
+      white-space: nowrap;
+    }
+
+    .plane-icon {
+      position: absolute;
+      right: 12%;
+      z-index: 2;
+      font-size: 1rem;
+      color: var(--green);
+    }
+
+    .times-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-end;
+      margin-bottom: 1.1rem;
+    }
+
+    .time-block {
+      display: flex;
+      flex-direction: column;
+    }
+
+    .time-block.arrival {
+      text-align: right;
+    }
+
+    .time-label {
+      font-size: 0.7rem;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      color: var(--text-muted);
+      margin-bottom: 2px;
+    }
+
+    .time-value {
+      font-size: 1.1rem;
+      font-weight: 700;
+      font-variant-numeric: tabular-nums;
+    }
+
+    .time-date {
+      font-size: 0.78rem;
+      color: var(--text-muted);
+    }
+
+    .time-tz {
+      font-size: 0.7rem;
+      color: var(--accent);
+      font-weight: 500;
+    }
+
+    .card-actions {
+      display: flex;
+      gap: 0.6rem;
+      padding-top: 1rem;
+      border-top: 1px solid var(--border);
+    }
+
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.4rem;
+      padding: 0.55rem 1.1rem;
+      border-radius: 8px;
+      font-size: 0.85rem;
+      font-weight: 600;
+      text-decoration: none;
+      transition: all 0.15s;
+      cursor: pointer;
+      border: none;
+    }
+
+    .btn-primary {
+      background: var(--accent);
+      color: #fff;
+    }
+
+    .btn-primary:hover {
+      background: var(--accent-hover);
+      transform: translateY(-1px);
+    }
+
+    .btn-secondary {
+      background: transparent;
+      color: var(--text-muted);
+      border: 1px solid var(--border);
+    }
+
+    .btn-secondary:hover {
+      border-color: var(--text-muted);
+      color: var(--text);
+    }
+
+    .icon {
+      width: 16px;
+      height: 16px;
+      display: inline-block;
+    }
+
+    footer {
+      text-align: center;
+      padding: 2rem 0;
+      color: var(--text-muted);
+      font-size: 0.82rem;
+    }
+
+    footer a {
+      color: var(--accent);
+      text-decoration: none;
+    }
+
+    .next-days-badge {
+      display: inline-block;
+      background: rgba(52, 211, 153, 0.12);
+      color: var(--green);
+      font-size: 0.78rem;
+      font-weight: 600;
+      padding: 4px 12px;
+      border-radius: 999px;
+      margin-top: 0.5rem;
+    }
+
+    @media (min-width: 700px) {
+      .flights-grid {
+        grid-template-columns: 1fr 1fr;
+      }
+    }
+
+    @media (max-width: 500px) {
+      .container { padding: 1rem; }
+      header h1 { font-size: 1.6rem; }
+      .airport-code { font-size: 1.2rem; }
+      .flight-num { font-size: 1.2rem; }
+      .card-actions { flex-direction: column; }
+      .btn { justify-content: center; }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <header>
+      <h1><span>TravelCal</span> Flight Dashboard</h1>
+      <p>Long-haul flights with timezone-aware calendar invites</p>
+      <div class="next-days-badge">Departures: March 30 – 31, 2026</div>
+    </header>
+
+    {% for group_name, flights in groups.items() %}
+    <section class="route-group">
+      <h2>
+        {{ group_name }}
+        <span class="route-badge">{{ flights | length }} flights</span>
+      </h2>
+      <div class="flights-grid">
+        {% for f in flights %}
+        <div class="flight-card">
+          <div class="card-top">
+            <div class="airline-info">
+              <span class="airline-name">{{ f.airline }}</span>
+              <span class="flight-num">{{ f.flight_number }}</span>
+            </div>
+            <span class="aircraft-tag">{{ f.aircraft }}</span>
+          </div>
+
+          <div class="route-visual">
+            <div class="city-block">
+              <div class="airport-code">{{ f.departure_airport }}</div>
+              <div class="city-name">{{ f.departure_city }}</div>
+            </div>
+            <div class="route-line">
+              <span class="duration-pill">{{ f.duration_hours }}h {{ f.duration_minutes }}m</span>
+              <span class="plane-icon">&#9992;</span>
+            </div>
+            <div class="city-block arrival">
+              <div class="airport-code">{{ f.arrival_airport }}</div>
+              <div class="city-name">{{ f.arrival_city }}</div>
+            </div>
+          </div>
+
+          <div class="times-row">
+            <div class="time-block">
+              <span class="time-label">Departure</span>
+              <span class="time-value">{{ f.departure_time[11:16] }}</span>
+              <span class="time-date">{{ f.departure_time[:10] }}</span>
+              <span class="time-tz">{{ f.departure_tz }}</span>
+            </div>
+            <div class="time-block arrival">
+              <span class="time-label">Arrival</span>
+              <span class="time-value">{{ f.arrival_time[11:16] }}</span>
+              <span class="time-date">{{ f.arrival_time[:10] }}</span>
+              <span class="time-tz">{{ f.arrival_tz }}</span>
+            </div>
+          </div>
+
+          <div class="card-actions">
+            <a href="/download/{{ f.id }}.ics" class="btn btn-primary">
+              <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <rect x="3" y="4" width="18" height="18" rx="2" ry="2"/>
+                <line x1="16" y1="2" x2="16" y2="6"/>
+                <line x1="8" y1="2" x2="8" y2="6"/>
+                <line x1="3" y1="10" x2="21" y2="10"/>
+              </svg>
+              Add to Calendar
+            </a>
+            <a href="/preview/{{ f.id }}.ics" target="_blank" class="btn btn-secondary">
+              <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+                <polyline points="14 2 14 8 20 8"/>
+                <line x1="16" y1="13" x2="8" y2="13"/>
+                <line x1="16" y1="17" x2="8" y2="17"/>
+              </svg>
+              Preview .ics
+            </a>
+          </div>
+        </div>
+        {% endfor %}
+      </div>
+    </section>
+    {% endfor %}
+
+    <footer>
+      <p>Powered by <a href="#">calendar-tz</a> — RFC 5545 compliant .ics files with full VTIMEZONE support</p>
+      <p>Works on iPhone (Apple Calendar), Android (Google Calendar), Outlook, and all desktop clients</p>
+    </footer>
+  </div>
+</body>
+</html>
